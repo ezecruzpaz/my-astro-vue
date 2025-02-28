@@ -1,13 +1,17 @@
 ---
-import MiComponente from '../components/MiComponente.vue';
+import ApiComponent from '../components/ApiComponent.vue';
+import AgregarLibro from '../components/AgregarLibro.vue';
+import '../styles/global.css';
 ---
 
 <html>
-<head>
-  <title>Astro + Vue</title>
-</head>
-<body>
-  <h1>Bienvenido a Astro con Vue</h1>
-  <MiComponente />
-</body>
+  <head>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Mi Libreria</title>
+  </head>
+  <body>
+    <h1>Bienvenido a mi libreria</h1>
+    <ApiComponent client:load />
+    <AgregarLibro client:load />
+  </body>
 </html>
