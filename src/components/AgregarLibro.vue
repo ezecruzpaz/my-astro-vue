@@ -1,19 +1,55 @@
 <template>
   <div class="container">
-    <h2 class="text-2xl font-bold mb-4">📖 Agregar un Nuevo Libro</h2>
+    <!-- Botón de "+" para abrir el popup -->
+    <button @click="abrirPopup" class="add-button">
+      +
+    </button>
 
-    <form @submit.prevent="agregarLibro" class="flex flex-col gap-4 p-4 border rounded-lg shadow-md max-w-lg">
-      <input v-model="nuevoLibro.titulo" type="text" placeholder="Título del libro" required class="p-2 border rounded" />
-      <input v-model="nuevoLibro.autorLibro" type="text" placeholder="Autor" required class="p-2 border rounded" />
-      <input v-model="nuevoLibro.fechaPublicacion" type="date" required class="p-2 border rounded" />
+    <!-- Popup/modal -->
+    <div v-if="mostrarPopup" class="popup-overlay">
+      <div class="popup-content">
+        <h2 class="form-title">📖 Agregar un Nuevo Libro</h2>
 
-      <button type="submit" class="p-2 bg-green-500 text-white rounded-lg hover:bg-green-700">
-        ➕ Agregar Libro
-      </button>
-    </form>
+        <!-- Formulario -->
+        <form @submit.prevent="agregarLibro" class="form">
+          <div class="form-group">
+            <label for="titulo" class="form-label">Título del libro</label>
+            <input
+              v-model="nuevoLibro.titulo"
+              type="text"
+              id="titulo"
+              placeholder="Ej: Cien años de soledad"
+              required
+              class="form-input"
+            />
+          </div>
 
-    <p v-if="mensaje" class="text-green-600 mt-2 font-semibold">{{ mensaje }}</p>
-    <p v-if="error" class="text-red-500 mt-2 font-semibold">❌ {{ error }}</p>
+          <div class="form-group">
+            <label for="fechaPublicacion" class="form-label">Fecha de publicación</label>
+            <input
+              v-model="nuevoLibro.fechaPublicacion"
+              type="date"
+              id="fechaPublicacion"
+              required
+              class="form-input"
+            />
+          </div>
+
+          <button type="submit" class="form-button">
+            Agregar Libro
+          </button>
+        </form>
+
+        <!-- Botón para cerrar el popup -->
+        <button @click="cerrarPopup" class="close-button">
+          ✖
+        </button>
+
+        <!-- Mensajes de retroalimentación -->
+        <p v-if="mensaje" class="form-message success">{{ mensaje }}</p>
+        <p v-if="error" class="form-message error">❌ {{ error }}</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -22,34 +58,214 @@ import { ref } from "vue";
 
 const nuevoLibro = ref({
   titulo: "",
-  autorLibro: "",
   fechaPublicacion: "",
 });
 
 const mensaje = ref("");
 const error = ref("");
+const mostrarPopup = ref(false); // Controla si el popup está visible
+
+const abrirPopup = () => {
+  mostrarPopup.value = true;
+};
+
+const cerrarPopup = () => {
+  mostrarPopup.value = false;
+  mensaje.value = "";
+  error.value = "";
+};
+
+const generarUUID = () => {
+  return crypto.randomUUID(); // Genera un UUID automáticamente
+};
 
 const agregarLibro = async () => {
   mensaje.value = "";
   error.value = "";
 
   try {
+    // Convertir la fecha al formato ISO
+    const fechaISO = new Date(nuevoLibro.value.fechaPublicacion).toISOString();
+
+    // Generar un UUID para el autor
+    const autorLibro = generarUUID();
+
+    // Crear el objeto con el formato esperado por la API
+    const libroParaEnviar = {
+      titulo: nuevoLibro.value.titulo,
+      fechaPublicacion: fechaISO,
+      autorLibro: autorLibro, // UUID generado automáticamente
+    };
+
+    console.log("Datos a enviar:", libroParaEnviar); // Depuración
+
+    // Enviar la solicitud POST a la API
     const response = await fetch("https://librerias.somee.com/api/LibroMaterial", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(nuevoLibro.value),
+      body: JSON.stringify(libroParaEnviar),
     });
 
+    // Verificar si la respuesta es exitosa
     if (!response.ok) {
-      throw new Error("No se pudo agregar el libro");
+      const errorData = await response.json(); // Leer el mensaje de error de la API
+      throw new Error(errorData.message || "No se pudo agregar el libro");
     }
 
+    // Mostrar mensaje de éxito y limpiar el formulario
     mensaje.value = "✅ Libro agregado exitosamente";
-    nuevoLibro.value = { titulo: "", autorLibro: "", fechaPublicacion: "" };
+    nuevoLibro.value = { titulo: "", fechaPublicacion: "" };
+
+    // Cerrar el popup después de 2 segundos
+    setTimeout(() => {
+      cerrarPopup();
+    }, 2000);
   } catch (err) {
+    // Mostrar mensaje de error
     error.value = err instanceof Error ? err.message : "Error desconocido";
+    console.error("Error al agregar el libro:", err); // Depuración
   }
 };
 </script>
+
+<style scoped>
+/* Estilos generales */
+.container {
+  position: relative;
+}
+
+/* Botón de "+" */
+.add-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  color: white;
+  font-size: 2rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.add-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Popup/modal */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+  position: relative;
+}
+
+/* Botón para cerrar el popup */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+/* Estilos del formulario (igual que antes) */
+.form-title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #333;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-input:focus {
+  border-color: #6d28d9;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+  outline: none;
+}
+
+.form-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.form-button:hover {
+  background: linear-gradient(135deg, #5b21b6, #7c3aed);
+  transform: translateY(-2px);
+}
+
+.form-message {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.success {
+  color: #10b981;
+}
+
+.error {
+  color: #ef4444;
+}
+</style>

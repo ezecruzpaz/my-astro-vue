@@ -43,7 +43,7 @@ export default {
       });
     };
 
-    onMounted(async () => {
+    const obtenerLibros = async () => {
       try {
         const response = await fetch('https://librerias.somee.com/api/LibroMaterial');
         if (!response.ok) {
@@ -57,13 +57,21 @@ export default {
       } finally {
         loading.value = false;
       }
-    });
+    };
+
+    onMounted(() => {
+  obtenerLibros(); // Obtener los libros al cargar el componente
+
+  // Refrescar la lista cada 10 segundos
+  setInterval(obtenerLibros, 2000);
+});
 
     return {
       libros,
       loading,
       error,
       formatFecha,
+      obtenerLibros, // Exportar la función para usarla en otros componentes
     };
   },
 };
