@@ -2,17 +2,30 @@
   <div class="container">
     <h1 class="title">Lista de Libros</h1>
 
-    <div v-if="libros.length" class="table-container">
+    <!-- Campo de búsqueda por ID -->
+    <div class="search-container">
+      <input
+        v-model="busquedaId"
+        type="text"
+        placeholder="Buscar libro por ID"
+        class="search-input"
+      />
+    </div>
+
+    <!-- Tabla de libros -->
+    <div v-if="librosFiltrados.length" class="table-container">
       <table class="book-table">
         <thead>
           <tr>
+            <th class="header">Libro ID</th>
             <th class="header">Título</th>
             <th class="header">Fecha de publicación</th>
             <th class="header">ID del autor</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="libro in libros" :key="libro.libreriaMaterialId" class="book-row">
+          <tr v-for="libro in librosFiltrados" :key="libro.libreriaMaterialId" class="book-row">
+            <td class="cell">{{ libro.libreriaMaterialId }}</td>
             <td class="cell">{{ libro.titulo }}</td>
             <td class="cell">{{ formatFecha(libro.fechaPublicacion) }}</td>
             <td class="cell">{{ libro.autorLibro }}</td>
@@ -21,19 +34,22 @@
       </table>
     </div>
 
+    <!-- Mensajes de carga y error -->
     <p v-else-if="loading" class="loading">Cargando libros...</p>
+    <p v-else-if="busquedaId && !librosFiltrados.length" class="error">No se encontró ningún libro con el ID ingresado.</p>
     <p v-else class="error">No se encontraron libros o hubo un error.</p>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
 export default {
   setup() {
     const libros = ref([]);
     const loading = ref(true);
     const error = ref(null);
+    const busquedaId = ref(''); // ID ingresado por el usuario
 
     const formatFecha = (fecha) => {
       return new Date(fecha).toLocaleDateString('es-ES', {
@@ -59,19 +75,30 @@ export default {
       }
     };
 
-    onMounted(() => {
-  obtenerLibros(); // Obtener los libros al cargar el componente
+    // Filtrar libros por ID
+    const librosFiltrados = computed(() => {
+      if (!busquedaId.value) {
+        return libros.value; // Si no hay búsqueda, mostrar todos los libros
+      }
+      return libros.value.filter((libro) =>
+        libro.libreriaMaterialId.toLowerCase().includes(busquedaId.value.toLowerCase())
+      );
+    });
 
-  // Refrescar la lista cada 10 segundos
-  setInterval(obtenerLibros, 2000);
-});
+    onMounted(() => {
+      obtenerLibros(); // Obtener los libros al cargar el componente
+
+      // Refrescar la lista cada 2 segundos
+      setInterval(obtenerLibros, 2000);
+    });
 
     return {
       libros,
       loading,
       error,
+      busquedaId,
+      librosFiltrados,
       formatFecha,
-      obtenerLibros, // Exportar la función para usarla en otros componentes
     };
   },
 };
@@ -94,6 +121,28 @@ export default {
   color: #333;
   margin-bottom: 40px;
   text-align: center;
+}
+
+.search-container {
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #333;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #6d28d9;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+  outline: none;
 }
 
 .table-container {
