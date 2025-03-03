@@ -2,12 +2,12 @@
   <div class="container">
     <h1 class="title">Lista de Libros</h1>
 
-    <!-- Campo de búsqueda por ID -->
+    <!-- Campo de búsqueda por Nombre -->
     <div class="search-container">
       <input
-        v-model="busquedaId"
+        v-model="busquedaNombre"
         type="text"
-        placeholder="Buscar libro por ID"
+        placeholder="Buscar libro por Nombre"
         class="search-input"
       />
     </div>
@@ -17,7 +17,6 @@
       <table class="book-table">
         <thead>
           <tr>
-            <th class="header">Libro ID</th>
             <th class="header">Título</th>
             <th class="header">Fecha de publicación</th>
             <th class="header">ID del autor</th>
@@ -25,7 +24,6 @@
         </thead>
         <tbody>
           <tr v-for="libro in librosFiltrados" :key="libro.libreriaMaterialId" class="book-row">
-            <td class="cell">{{ libro.libreriaMaterialId }}</td>
             <td class="cell">{{ libro.titulo }}</td>
             <td class="cell">{{ formatFecha(libro.fechaPublicacion) }}</td>
             <td class="cell">{{ libro.autorLibro }}</td>
@@ -36,7 +34,7 @@
 
     <!-- Mensajes de carga y error -->
     <p v-else-if="loading" class="loading">Cargando libros...</p>
-    <p v-else-if="busquedaId && !librosFiltrados.length" class="error">No se encontró ningún libro con el ID ingresado.</p>
+    <p v-else-if="busquedaNombre && !librosFiltrados.length" class="error">No se encontró ningún libro con el Nombre ingresado.</p>
     <p v-else class="error">No se encontraron libros o hubo un error.</p>
   </div>
 </template>
@@ -49,7 +47,7 @@ export default {
     const libros = ref([]);
     const loading = ref(true);
     const error = ref(null);
-    const busquedaId = ref(''); // ID ingresado por el usuario
+    const busquedaNombre = ref(''); // Nombre ingresado por el usuario
 
     const formatFecha = (fecha) => {
       return new Date(fecha).toLocaleDateString('es-ES', {
@@ -75,13 +73,13 @@ export default {
       }
     };
 
-    // Filtrar libros por ID
+    // Filtrar libros por Nombre
     const librosFiltrados = computed(() => {
-      if (!busquedaId.value) {
+      if (!busquedaNombre.value) {
         return libros.value; // Si no hay búsqueda, mostrar todos los libros
       }
       return libros.value.filter((libro) =>
-        libro.libreriaMaterialId.toLowerCase().includes(busquedaId.value.toLowerCase())
+        libro.titulo.toLowerCase().includes(busquedaNombre.value.toLowerCase())
       );
     });
 
@@ -96,7 +94,7 @@ export default {
       libros,
       loading,
       error,
-      busquedaId,
+      busquedaNombre,
       librosFiltrados,
       formatFecha,
     };

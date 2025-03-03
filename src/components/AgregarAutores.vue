@@ -1,48 +1,64 @@
 <template>
     <div class="p-6">
-      <h1 class="text-2xl font-bold mb-4">Lista de Autores</h1>
+      <h1 class="text-center text-2xl font-semibold">Lista de Autores</h1>
   
-      <button @click="mostrarModal = true" class="bg-blue-500 text-white px-4 py-2 rounded">
+      <!-- Botón para abrir el modal -->
+      <button @click="mostrarModal = true" class="bg-blue-500 text-white px-4 py-2 rounded mb-4">
         Agregar Autor
       </button>
   
-      <div class="mt-4">
-        <ul v-if="autores.length > 0" class="space-y-2">
-          <li v-for="autor in autores" :key="autor.id" class="p-3 border rounded bg-gray-100">
-            <strong>{{ autor.nombre }} {{ autor.apellido }}</strong> - Fecha de Nacimiento: {{ autor.fechaNacimiento }}
-            <ul v-if="autor.gradosAcademicos.length > 0" class="mt-2 pl-4 list-disc">
-              <li v-for="grado in autor.gradosAcademicos" :key="grado.gradoAcademicoGuid">
-                🎓 {{ grado.nombre }} en {{ grado.centroAcademico }} ({{ grado.fechaGrado }})
-              </li>
-            </ul>
-          </li>
-        </ul>
-        <p v-else class="text-gray-600">No hay autores registrados.</p>
+      <!-- Tabla de Autores -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full table-auto bg-white shadow-lg rounded-lg mx-auto text-center">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="px-4 py-2">Nombre</th>
+              <th class="px-4 py-2">Apellido</th>
+              <th class="px-4 py-2">Fecha de Nacimiento</th>
+              <th class="px-4 py-2">Grados Académicos</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="autor in autores" :key="autor.id" class="border-b hover:bg-gray-50">
+              <td class="px-4 py-2">{{ autor.nombre }} {{ autor.apellido }}</td>
+              <td class="px-4 py-2">{{ autor.apellido }}</td>
+              <td class="px-4 py-2">{{ autor.fechaNacimiento }}</td>
+              <td class="px-4 py-2">
+                <ul v-if="autor.gradosAcademicos.length > 0">
+                  <li v-for="grado in autor.gradosAcademicos" :key="grado.gradoAcademicoGuid">
+                    🎓 {{ grado.nombre }} en {{ grado.centroAcademico }} ({{ grado.fechaGrado }})
+                  </li>
+                </ul>
+                <p v-else>No tiene grados registrados</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
   
+      <!-- Modal para agregar autor -->
       <div v-if="mostrarModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
           <h2 class="text-xl font-bold mb-4">Agregar Autor</h2>
   
           <form @submit.prevent="agregarAutor">
-            <div class="mb-2">
+            <div class="mb-4">
               <label class="block text-gray-700">Nombre:</label>
               <input v-model="autor.nombre" type="text" class="border w-full p-2 rounded" required>
             </div>
   
-            <div class="mb-2">
+            <div class="mb-4">
               <label class="block text-gray-700">Apellido:</label>
               <input v-model="autor.apellido" type="text" class="border w-full p-2 rounded" required>
             </div>
   
-            <div class="mb-2">
+            <div class="mb-4">
               <label class="block text-gray-700">Fecha de Nacimiento:</label>
               <input v-model="autor.fechaNacimiento" type="date" class="border w-full p-2 rounded" required>
             </div>
   
             <h3 class="text-lg font-semibold mt-4">Grados Académicos</h3>
-  
-            <div v-for="(grado, index) in autor.gradosAcademicos" :key="index" class="mb-3 p-3 border rounded bg-gray-100">
+            <div v-for="(grado, index) in autor.gradosAcademicos" :key="index" class="mb-4 p-3 border rounded bg-gray-100">
               <label class="block text-gray-700">Nombre del Grado:</label>
               <input v-model="grado.nombre" type="text" class="border w-full p-2 rounded" required>
   
@@ -73,79 +89,132 @@
         </div>
       </div>
     </div>
-</template>
+  </template>
   
-<script>
-export default {
-  data() {
-    return {
-      mostrarModal: false,
-      autores: [],
-      autor: {
-        nombre: "",
-        apellido: "",
-        fechaNacimiento: "",
-        gradosAcademicos: [],
+  <script>
+  export default {
+    data() {
+      return {
+        mostrarModal: false,
+        autores: [],
+        autor: {
+          nombre: "",
+          apellido: "",
+          fechaNacimiento: "",
+          gradosAcademicos: [],
+        },
+      };
+    },
+    methods: {
+      async obtenerAutores() {
+        try {
+          const response = await fetch("http://localhost:5080/api/Autor");
+          if (!response.ok) throw new Error("Error al obtener los autores");
+          this.autores = await response.json();
+        } catch (error) {
+          console.error("Error:", error);
+        }
       },
-    };
-  },
-  methods: {
-    async obtenerAutores() {
-      try {
-        const response = await fetch("http://localhost:5080/api/Autor");
-        if (!response.ok) throw new Error("Error al obtener los autores");
-        this.autores = await response.json();
-      } catch (error) {
-        console.error("Error:", error);
-      }
-    },
-    agregarGrado() {
-      this.autor.gradosAcademicos.push({
-        nombre: "",
-        centroAcademico: "",
-        fechaGrado: "",
-        gradoAcademicoGuid: this.generarGUID(),
-      });
-    },
-    eliminarGrado(index) {
-      this.autor.gradosAcademicos.splice(index, 1);
-    },
-    async agregarAutor() {
-      try {
-        const response = await fetch("http://localhost:5080/api/Autor", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...this.autor,
-            fechaNacimiento: new Date(this.autor.fechaNacimiento).toISOString(),
-            gradosAcademicos: this.autor.gradosAcademicos.map((grado) => ({
-              ...grado,
-              fechaGrado: new Date(grado.fechaGrado).toISOString(),
-            })),
-          }),
+      agregarGrado() {
+        this.autor.gradosAcademicos.push({
+          nombre: "",
+          centroAcademico: "",
+          fechaGrado: "",
+          gradoAcademicoGuid: this.generarGUID(),
         });
+      },
+      eliminarGrado(index) {
+        this.autor.gradosAcademicos.splice(index, 1);
+      },
+      async agregarAutor() {
+        try {
+          const response = await fetch("http://localhost:5080/api/Autor", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...this.autor,
+              fechaNacimiento: new Date(this.autor.fechaNacimiento).toISOString(),
+              gradosAcademicos: this.autor.gradosAcademicos.map((grado) => ({
+                ...grado,
+                fechaGrado: new Date(grado.fechaGrado).toISOString(),
+              })),
+            }),
+          });
   
-        if (!response.ok) throw new Error("Error al agregar el autor");
+          if (!response.ok) throw new Error("Error al agregar el autor");
   
-        alert("Autor agregado exitosamente");
-        this.mostrarModal = false;
-        this.autor = { nombre: "", apellido: "", fechaNacimiento: "", gradosAcademicos: [] };
-        this.obtenerAutores();
-      } catch (error) {
-        console.error("Error:", error);
-        alert("Ocurrió un error al agregar el autor");
-      }
+          alert("Autor agregado exitosamente");
+          this.mostrarModal = false;
+          this.autor = { nombre: "", apellido: "", fechaNacimiento: "", gradosAcademicos: [] };
+          this.obtenerAutores();
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Ocurrió un error al agregar el autor");
+        }
+      },
+      generarGUID() {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+          let r = (Math.random() * 16) | 0,
+            v = c === "x" ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        });
+      },
     },
-    generarGUID() {
-      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-        let r = (Math.random() * 16) | 0,
-          v = c === "x" ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-      });
+    mounted() {
+      this.obtenerAutores();
     },
-  },
-  mounted() {
-    this.obtenerAutores();
-  },
-};
-</script>
+  };
+  </script>
+  
+  <style scoped>
+  /* Estilos globales */
+  body {
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* Estilo para el modal */
+  .bg-gray-900 {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .bg-white {
+    background-color: white;
+  }
+  
+  .shadow-lg {
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Estilos para la tabla */
+  
+  table {
+    width: 80%; /* Para asegurar que la tabla no ocupe todo el espacio */
+    max-width: 1000px;
+    border-collapse: collapse; /* Elimina los bordes entre celdas */
+    margin: 0 auto; /* Centra la tabla */
+  }
+  
+  th,
+  td {
+    padding: 12px 15px;
+    border: none; /* Elimina los bordes de las celdas */
+  }
+  
+  th {
+    background-color: #4CAF50;
+    color: white;
+    font-size: 18px;
+    font-weight: 500;
+    padding: 15px;
+    text-align: left;
+  }
+  
+  tr:hover {
+    background-color: #f9f9f9;
+  }
+  
+  button {
+    cursor: pointer;
+  }
+  </style>
+  
