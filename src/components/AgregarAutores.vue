@@ -26,7 +26,7 @@
               <td class="px-4 py-2">
                 <ul v-if="autor.gradosAcademicos.length > 0">
                   <li v-for="grado in autor.gradosAcademicos" :key="grado.gradoAcademicoGuid">
-                    🎓 {{ grado.nombre }} en {{ grado.centroAcademico }} ({{ grado.fechaGrado }})
+                    🎓 {{ grado.nombre }} en {{ grado.centroAcademico }} 
                   </li>
                 </ul>
                 <p v-else>No tiene grados registrados</p>

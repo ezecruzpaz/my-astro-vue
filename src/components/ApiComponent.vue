@@ -19,14 +19,14 @@
           <tr>
             <th class="header">Título</th>
             <th class="header">Fecha de publicación</th>
-            <th class="header">ID del autor</th>
+            <th class="header">Nombre del autor</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="libro in librosFiltrados" :key="libro.libreriaMaterialId" class="book-row">
             <td class="cell">{{ libro.titulo }}</td>
             <td class="cell">{{ formatFecha(libro.fechaPublicacion) }}</td>
-            <td class="cell">{{ libro.autorLibro }}</td>
+            <td class="cell">{{ obtenerNombreAutor(libro.autorLibro) }}</td> <!-- Mostrar nombre del autor -->
           </tr>
         </tbody>
       </table>
@@ -45,9 +45,10 @@ import { ref, computed, onMounted } from 'vue';
 export default {
   setup() {
     const libros = ref([]);
+    const autores = ref([]);
     const loading = ref(true);
     const error = ref(null);
-    const busquedaNombre = ref(''); // Nombre ingresado por el usuario
+    const busquedaNombre = ref('');
 
     const formatFecha = (fecha) => {
       return new Date(fecha).toLocaleDateString('es-ES', {
@@ -59,7 +60,7 @@ export default {
 
     const obtenerLibros = async () => {
       try {
-        const response = await fetch('https://librerias.somee.com/api/LibroMaterial');
+        const response = await fetch('https://localhost:7293/api/LibroMaterial');
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
@@ -73,10 +74,28 @@ export default {
       }
     };
 
-    // Filtrar libros por Nombre
+    const obtenerAutores = async () => {
+      try {
+        const response = await fetch('http://localhost:5080/api/Autor');
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        autores.value = data;
+      } catch (err) {
+        error.value = err.message;
+        console.error('Error al obtener los autores:', err);
+      }
+    };
+
+    const obtenerNombreAutor = (autorId) => {
+      const autor = autores.value.find(a => a.autorLibroId === autorId);
+      return autor ? `${autor.nombre} ${autor.apellido}` : 'Desconocido';
+    };
+
     const librosFiltrados = computed(() => {
       if (!busquedaNombre.value) {
-        return libros.value; // Si no hay búsqueda, mostrar todos los libros
+        return libros.value;
       }
       return libros.value.filter((libro) =>
         libro.titulo.toLowerCase().includes(busquedaNombre.value.toLowerCase())
@@ -84,19 +103,19 @@ export default {
     });
 
     onMounted(() => {
-      obtenerLibros(); // Obtener los libros al cargar el componente
-
-      // Refrescar la lista cada 2 segundos
-      setInterval(obtenerLibros, 2000);
+      obtenerLibros();
+      obtenerAutores();
     });
 
     return {
       libros,
+      autores,
       loading,
       error,
       busquedaNombre,
       librosFiltrados,
       formatFecha,
+      obtenerNombreAutor,
     };
   },
 };
@@ -104,27 +123,20 @@ export default {
 
 <style scoped>
 .container {
-  padding: 40px;
-  background-color: #f9f9f9;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: 'Roboto', sans-serif;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .title {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 2rem;
   color: #333;
-  margin-bottom: 40px;
   text-align: center;
+  margin-bottom: 20px;
 }
 
 .search-container {
   margin-bottom: 20px;
-  width: 100%;
-  max-width: 400px;
 }
 
 .search-input {
@@ -132,70 +144,43 @@ export default {
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  font-size: 16px;
-  color: #333;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.search-input:focus {
-  border-color: #6d28d9;
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
-  outline: none;
+  font-size: 1rem;
 }
 
 .table-container {
-  width: 100%;
-  max-width: 1000px;
   overflow-x: auto;
 }
 
 .book-table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  overflow: hidden;
+  margin-top: 20px;
 }
 
 .header {
-  background-color: #4CAF50;
+  background-color: #6d28d9;
   color: white;
-  font-size: 18px;
-  font-weight: 500;
-  padding: 15px;
+  padding: 12px;
   text-align: left;
 }
 
-.book-row {
-  transition: background-color 0.3s ease-in-out;
-}
-
-.book-row:hover {
-  background-color: #f1f1f1;
+.book-row:nth-child(even) {
+  background-color: #f9f9f9;
 }
 
 .cell {
-  font-size: 16px;
-  color: #555;
-  padding: 15px;
+  padding: 12px;
   border-bottom: 1px solid #ddd;
 }
 
-.cell:first-child {
-  font-weight: 500;
-  color: #222;
-}
-
-.loading {
-  font-size: 18px;
+.loading, .error {
+  text-align: center;
+  font-size: 1.2rem;
   color: #666;
   margin-top: 20px;
 }
 
 .error {
-  font-size: 18px;
-  color: red;
-  margin-top: 20px;
+  color: #ef4444;
 }
 </style>
