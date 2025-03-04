@@ -35,6 +35,21 @@
             />
           </div>
 
+          <div class="form-group">
+            <label for="autorLibro" class="form-label">Autor</label>
+            <select
+              v-model="nuevoLibro.autorLibro"
+              id="autorLibro"
+              required
+              class="form-input"
+            >
+              <option value="" disabled>Seleccione un autor</option>
+              <option v-for="autor in autores" :key="autor.autorLibroId" :value="autor.autorLibroId">
+                {{ autor.nombre }} {{ autor.apellido }}
+              </option>
+            </select>
+          </div>
+
           <button type="submit" class="form-button">
             Agregar Libro
           </button>
@@ -54,53 +69,65 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 
 const nuevoLibro = ref({
   titulo: "",
   fechaPublicacion: "",
+  autorLibro: "", // ID del autor seleccionado
 });
 
+const autores = ref([]); // Lista de autores
 const mensaje = ref("");
 const error = ref("");
 const mostrarPopup = ref(false); // Controla si el popup está visible
 
-const abrirPopup = () => {
-  mostrarPopup.value = true;
+// Obtener la lista de autores
+const obtenerAutores = async () => {
+  try {
+    const response = await fetch("http://localhost:5080/api/Autor");
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    const data = await response.json();
+    autores.value = data;
+  } catch (err) {
+    error.value = "Error al obtener la lista de autores";
+    console.error("Error al obtener los autores:", err);
+  }
 };
 
+// Abrir el popup y cargar la lista de autores
+const abrirPopup = () => {
+  mostrarPopup.value = true;
+  obtenerAutores();
+};
+
+// Cerrar el popup
 const cerrarPopup = () => {
   mostrarPopup.value = false;
   mensaje.value = "";
   error.value = "";
+  nuevoLibro.value = { titulo: "", fechaPublicacion: "", autorLibro: "" }; // Limpiar el formulario
 };
 
-const generarUUID = () => {
-  return crypto.randomUUID(); // Genera un UUID automáticamente
-};
-
+// Agregar un nuevo libro
 const agregarLibro = async () => {
   mensaje.value = "";
   error.value = "";
 
   try {
-    // Convertir la fecha al formato ISO
-    const fechaISO = new Date(nuevoLibro.value.fechaPublicacion).toISOString();
-
-    // Generar un UUID para el autor
-    const autorLibro = generarUUID();
-
     // Crear el objeto con el formato esperado por la API
     const libroParaEnviar = {
       titulo: nuevoLibro.value.titulo,
-      fechaPublicacion: fechaISO,
-      autorLibro: autorLibro, // UUID generado automáticamente
+      fechaPublicacion: new Date(nuevoLibro.value.fechaPublicacion).toISOString(),
+      autorLibroId: parseInt(nuevoLibro.value.autorLibro), // Convertir a número
     };
 
-    console.log("Datos a enviar:", libroParaEnviar); // Depuración
+    console.log("Datos a enviar:", JSON.stringify(libroParaEnviar, null, 2)); // Depuración
 
     // Enviar la solicitud POST a la API
-    const response = await fetch("https://librerias.somee.com/api/LibroMaterial", {
+    const response = await fetch("https://localhost:7293/api/LibroMaterial", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -110,18 +137,18 @@ const agregarLibro = async () => {
 
     // Verificar si la respuesta es exitosa
     if (!response.ok) {
-      const errorData = await response.json(); // Leer el mensaje de error de la API
-      throw new Error(errorData.message || "No se pudo agregar el libro");
+      const errorText = await response.text(); // Leer la respuesta como texto
+      throw new Error(errorText || "No se pudo agregar el libro");
     }
 
     // Mostrar mensaje de éxito y limpiar el formulario
     mensaje.value = "✅ Libro agregado exitosamente";
-    nuevoLibro.value = { titulo: "", fechaPublicacion: "" };
+    nuevoLibro.value = { titulo: "", fechaPublicacion: "", autorLibro: "" };
 
     // Cerrar el popup después de 2 segundos
     setTimeout(() => {
       cerrarPopup();
-    }, 2000);
+    }, 1000);
   } catch (err) {
     // Mostrar mensaje de error
     error.value = err instanceof Error ? err.message : "Error desconocido";
@@ -199,7 +226,7 @@ const agregarLibro = async () => {
   color: #333;
 }
 
-/* Estilos del formulario (igual que antes) */
+/* Estilos del formulario */
 .form-title {
   font-size: 1.75rem;
   font-weight: bold;

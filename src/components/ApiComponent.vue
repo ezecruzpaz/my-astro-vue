@@ -26,7 +26,7 @@
           <tr v-for="libro in librosFiltrados" :key="libro.libreriaMaterialId" class="book-row">
             <td class="cell">{{ libro.titulo }}</td>
             <td class="cell">{{ formatFecha(libro.fechaPublicacion) }}</td>
-            <td class="cell">{{ obtenerNombreAutor(libro.autorLibro) }}</td> <!-- Mostrar nombre del autor -->
+            <td class="cell">{{ obtenerNombreAutor(libro.autorLibroId) }}</td>
           </tr>
         </tbody>
       </table>
@@ -102,9 +102,16 @@ export default {
       );
     });
 
-    onMounted(() => {
-      obtenerLibros();
-      obtenerAutores();
+    // Función para recargar los libros
+    const recargarLibros = async () => {
+      loading.value = true;
+      await obtenerLibros();
+      loading.value = false;
+    };
+
+    onMounted(async () => {
+      await obtenerAutores();
+      await obtenerLibros();
     });
 
     return {
@@ -116,71 +123,12 @@ export default {
       librosFiltrados,
       formatFecha,
       obtenerNombreAutor,
+      recargarLibros, // Exportar la función para recargar libros
     };
   },
 };
 </script>
 
 <style scoped>
-.container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.title {
-  font-size: 2rem;
-  color: #333;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.search-container {
-  margin-bottom: 20px;
-}
-
-.search-input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-}
-
-.table-container {
-  overflow-x: auto;
-}
-
-.book-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-.header {
-  background-color: #6d28d9;
-  color: white;
-  padding: 12px;
-  text-align: left;
-}
-
-.book-row:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.cell {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
-}
-
-.loading, .error {
-  text-align: center;
-  font-size: 1.2rem;
-  color: #666;
-  margin-top: 20px;
-}
-
-.error {
-  color: #ef4444;
-}
+/* Estilos anteriores */
 </style>
