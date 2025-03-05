@@ -8,7 +8,7 @@
     <!-- Popup/modal -->
     <div v-if="mostrarPopup" class="popup-overlay">
       <div class="popup-content">
-        <h2 class="form-title">📖 Agregar un Nuevo Libro</h2>
+        <h2 class="form-title">Agregar un Nuevo Libro</h2>
 
         <!-- Formulario -->
         <form @submit.prevent="agregarLibro" class="form">
@@ -127,7 +127,7 @@ const agregarLibro = async () => {
     console.log("Datos a enviar:", JSON.stringify(libroParaEnviar, null, 2)); // Depuración
 
     // Enviar la solicitud POST a la API
-    const response = await fetch("https://localhost:7293/api/LibroMaterial", {
+    const response = await fetch("https://librerias.somee.com/api/LibroMaterial", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -142,13 +142,13 @@ const agregarLibro = async () => {
     }
 
     // Mostrar mensaje de éxito y limpiar el formulario
-    mensaje.value = "✅ Libro agregado exitosamente";
+    mensaje.value = "Libro agregado exitosamente";
     nuevoLibro.value = { titulo: "", fechaPublicacion: "", autorLibro: "" };
 
     // Cerrar el popup después de 2 segundos
     setTimeout(() => {
       cerrarPopup();
-    }, 1000);
+    }, 2000);
   } catch (err) {
     // Mostrar mensaje de error
     error.value = err instanceof Error ? err.message : "Error desconocido";
@@ -161,6 +161,7 @@ const agregarLibro = async () => {
 /* Estilos generales */
 .container {
   position: relative;
+  font-family: Arial, sans-serif;
 }
 
 /* Botón de "+" */
@@ -170,7 +171,7 @@ const agregarLibro = async () => {
   right: 20px;
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  background: linear-gradient(135deg, #28aad9, #8b5cf6);
   color: white;
   font-size: 2rem;
   font-weight: bold;
@@ -208,6 +209,7 @@ const agregarLibro = async () => {
   max-width: 400px;
   width: 100%;
   position: relative;
+  font-family: Arial, sans-serif;
 }
 
 /* Botón para cerrar el popup */
@@ -228,11 +230,11 @@ const agregarLibro = async () => {
 
 /* Estilos del formulario */
 .form-title {
-  font-size: 1.75rem;
   font-weight: bold;
   color: #333;
   text-align: center;
   margin-bottom: 1.5rem;
+  font-family: Arial, sans-serif;
 }
 
 .form-group {
@@ -247,18 +249,26 @@ const agregarLibro = async () => {
   margin-bottom: 0.5rem;
 }
 
-.form-input {
+.form-input,
+.form-input[type="date"],
+.form-input[type="text"],
+.form-input[type="select"] {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 1rem;
   color: #333;
+  font-family: Arial, sans-serif;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+.form-input[type="select"] {
+  height: 3rem; /* Ajusta la altura del dropdown */
+}
+
 .form-input:focus {
-  border-color: #6d28d9;
+  border-color: #2889d9;
   box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
   outline: none;
 }
@@ -266,7 +276,7 @@ const agregarLibro = async () => {
 .form-button {
   width: 100%;
   padding: 0.75rem;
-  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  background: #2d63e2; /* Color del botón */
   color: white;
   font-size: 1rem;
   font-weight: 600;
@@ -274,10 +284,11 @@ const agregarLibro = async () => {
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease;
+  font-family: Arial, sans-serif;
 }
 
 .form-button:hover {
-  background: linear-gradient(135deg, #5b21b6, #7c3aed);
+  background: #5177ea; /* Color al pasar el ratón */
   transform: translateY(-2px);
 }
 
@@ -286,6 +297,7 @@ const agregarLibro = async () => {
   margin-top: 1rem;
   font-size: 0.9rem;
   font-weight: 500;
+  font-family: Arial, sans-serif;
 }
 
 .success {
@@ -295,4 +307,5 @@ const agregarLibro = async () => {
 .error {
   color: #ef4444;
 }
+
 </style>

@@ -60,7 +60,7 @@ export default {
 
     const obtenerLibros = async () => {
       try {
-        const response = await fetch('https://localhost:7293/api/LibroMaterial');
+        const response = await fetch('https://librerias.somee.com/api/LibroMaterial');
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
@@ -102,16 +102,9 @@ export default {
       );
     });
 
-    // Función para recargar los libros
-    const recargarLibros = async () => {
-      loading.value = true;
-      await obtenerLibros();
-      loading.value = false;
-    };
-
     onMounted(async () => {
-      await obtenerAutores();
-      await obtenerLibros();
+      await obtenerAutores(); // Primero obtener los autores
+      await obtenerLibros();  // Luego obtener los libros
     });
 
     return {
@@ -123,12 +116,86 @@ export default {
       librosFiltrados,
       formatFecha,
       obtenerNombreAutor,
-      recargarLibros, // Exportar la función para recargar libros
     };
   },
 };
 </script>
 
 <style scoped>
-/* Estilos anteriores */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Roboto', sans-serif;
+}
+
+.title {
+  font-size: 2.5rem;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.search-container {
+  margin-bottom: 20px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+.table-container {
+  display: flex;
+  justify-content: center; /* Centrar la tabla */
+  overflow-x: auto;
+}
+
+.book-table {
+  width: 100%;
+  max-width: 1200px; /* Aumentar el tamaño máximo de la tabla */
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  background-color: #007bff; /* Cambiar el color del encabezado */
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 700;
+}
+
+.book-row:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.cell {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+.loading, .error {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+  margin-top: 20px;
+}
+
+.error {
+  color: #ef4444;
+}
 </style>

@@ -1,0 +1,11 @@
+// Importa Bootstrap
+@import "~bootstrap/scss/bootstrap";
+
+// Personalizaciones (opcional)
+$primary: #6d28d9;
+$enable-shadows: true;
+
+// Aplica cambios
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/mixins";
